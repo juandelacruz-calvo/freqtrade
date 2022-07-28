@@ -33,9 +33,12 @@ from freqtrade.exchange.common import (API_FETCH_ORDER_RETRY_COUNT, BAD_EXCHANGE
 from freqtrade.misc import chunks, deep_merge_dicts, safe_value_fallback2
 from freqtrade.plugins.pairlist.pairlist_helpers import expand_pairlist
 
+
 CcxtModuleType = Any
 
+
 logger = logging.getLogger(__name__)
+
 
 # Workaround for adding samesite support to pre 3.8 python
 # Only applies to python3.7, and only on certain exchanges (kraken)
@@ -44,6 +47,7 @@ http.cookies.Morsel._reserved["samesite"] = "SameSite"  # type: ignore
 
 
 class Exchange:
+
     # Parameters to add directly to buy/sell calls (like agreeing to trading agreement)
     _params: Dict = {}
 
@@ -363,8 +367,8 @@ class Exchange:
 
     def market_is_future(self, market: Dict[str, Any]) -> bool:
         return (
-                market.get(self._ft_has["ccxt_futures_name"], False) is True and
-                market.get('linear', False) is True
+            market.get(self._ft_has["ccxt_futures_name"], False) is True and
+            market.get('linear', False) is True
         )
 
     def market_is_spot(self, market: Dict[str, Any]) -> bool:
@@ -379,14 +383,14 @@ class Exchange:
         Ensures that Configured mode aligns to
         """
         return (
-                market.get('quote', None) is not None
-                and market.get('base', None) is not None
-                and (self.precisionMode != TICK_SIZE
-                     # Too low precision will falsify calculations
-                     or market.get('precision', {}).get('price') > 1e-11)
-                and ((self.trading_mode == TradingMode.SPOT and self.market_is_spot(market))
-                     or (self.trading_mode == TradingMode.MARGIN and self.market_is_margin(market))
-                     or (self.trading_mode == TradingMode.FUTURES and self.market_is_future(market)))
+            market.get('quote', None) is not None
+            and market.get('base', None) is not None
+            and (self.precisionMode != TICK_SIZE
+                 # Too low precision will falsify calculations
+                 or market.get('precision', {}).get('price') > 1e-11)
+            and ((self.trading_mode == TradingMode.SPOT and self.market_is_spot(market))
+                 or (self.trading_mode == TradingMode.MARGIN and self.market_is_margin(market))
+                 or (self.trading_mode == TradingMode.FUTURES and self.market_is_future(market)))
         )
 
     def klines(self, pair_interval: PairWithTimeframe, copy: bool = True) -> DataFrame:
@@ -643,9 +647,9 @@ class Exchange:
         return required_candle_call_count
 
     def validate_trading_mode_and_margin_mode(
-            self,
-            trading_mode: TradingMode,
-            margin_mode: Optional[MarginMode]  # Only None when trading_mode = TradingMode.SPOT
+        self,
+        trading_mode: TradingMode,
+        margin_mode: Optional[MarginMode]  # Only None when trading_mode = TradingMode.SPOT
     ):
         """
         Checks if freqtrade can perform trades using the configured
@@ -654,7 +658,7 @@ class Exchange:
             If the trading_mode/margin_mode type are not supported by freqtrade on this exchange
         """
         if trading_mode != TradingMode.SPOT and (
-                (trading_mode, margin_mode) not in self._supported_trading_mode_margin_pairs
+            (trading_mode, margin_mode) not in self._supported_trading_mode_margin_pairs
         ):
             mm_value = margin_mode and margin_mode.value
             raise OperationalException(
@@ -722,11 +726,11 @@ class Exchange:
             return 1 / pow(10, precision)
 
     def get_min_pair_stake_amount(
-            self,
-            pair: str,
-            price: float,
-            stoploss: float,
-            leverage: Optional[float] = 1.0
+        self,
+        pair: str,
+        price: float,
+        stoploss: float,
+        leverage: Optional[float] = 1.0
     ) -> Optional[float]:
         return self._get_stake_amount_limit(pair, price, stoploss, 'min', leverage)
 
@@ -739,12 +743,12 @@ class Exchange:
         return max_stake_amount / leverage
 
     def _get_stake_amount_limit(
-            self,
-            pair: str,
-            price: float,
-            stoploss: float,
-            limit: Literal['min', 'max'],
-            leverage: Optional[float] = 1.0
+        self,
+        pair: str,
+        price: float,
+        stoploss: float,
+        limit: Literal['min', 'max'],
+        leverage: Optional[float] = 1.0
     ) -> Optional[float]:
 
         isMin = limit == 'min'
@@ -967,12 +971,12 @@ class Exchange:
             self._set_leverage(leverage, pair)
 
     def _get_params(
-            self,
-            side: BuySell,
-            ordertype: str,
-            leverage: float,
-            reduceOnly: bool,
-            time_in_force: str = 'gtc',
+        self,
+        side: BuySell,
+        ordertype: str,
+        leverage: float,
+        reduceOnly: bool,
+        time_in_force: str = 'gtc',
     ) -> Dict:
         params = self._params.copy()
         if time_in_force != 'gtc' and ordertype != 'market':
@@ -983,16 +987,16 @@ class Exchange:
         return params
 
     def create_order(
-            self,
-            *,
-            pair: str,
-            ordertype: str,
-            side: BuySell,
-            amount: float,
-            rate: float,
-            leverage: float,
-            reduceOnly: bool = False,
-            time_in_force: str = 'gtc',
+        self,
+        *,
+        pair: str,
+        ordertype: str,
+        side: BuySell,
+        amount: float,
+        rate: float,
+        leverage: float,
+        reduceOnly: bool = False,
+        time_in_force: str = 'gtc',
     ) -> Dict:
         if self._config['dry_run']:
             dry_order = self.create_dry_run_order(pair, ordertype, side, amount, rate, leverage)
@@ -1068,7 +1072,7 @@ class Exchange:
             limit_rate = stop_price * (2 - limit_price_pct)
 
         bad_stop_price = ((stop_price <= limit_rate) if side ==
-                                                        "sell" else (stop_price >= limit_rate))
+                          "sell" else (stop_price >= limit_rate))
         # Ensure rate is less than stop price
         if bad_stop_price:
             raise OperationalException(
@@ -1644,7 +1648,7 @@ class Exchange:
             # Quote currency - divide by cost
             return round(self._contracts_to_amount(
                 order['symbol'], order['fee']['cost']) / order['cost'],
-                         8) if order['cost'] else None
+                8) if order['cost'] else None
         else:
             # If Fee currency is a different currency
             if not order['cost']:
@@ -1851,19 +1855,19 @@ class Exchange:
         interval_in_sec = timeframe_to_seconds(timeframe)
 
         return not (
-                (self._pairs_last_refresh_time.get(
-                    (pair, timeframe, candle_type),
-                    0
-                ) + interval_in_sec) >= arrow.utcnow().int_timestamp
+            (self._pairs_last_refresh_time.get(
+                (pair, timeframe, candle_type),
+                0
+            ) + interval_in_sec) >= arrow.utcnow().int_timestamp
         )
 
     @retrier_async
     async def _async_get_candle_history(
-            self,
-            pair: str,
-            timeframe: str,
-            candle_type: CandleType,
-            since_ms: Optional[int] = None,
+        self,
+        pair: str,
+        timeframe: str,
+        candle_type: CandleType,
+        since_ms: Optional[int] = None,
     ) -> Tuple[str, str, str, List]:
         """
         Asynchronously get candle history data using fetch_ohlcv
@@ -1887,27 +1891,25 @@ class Exchange:
                 data = await self._api_async.fetch_ohlcv(
                     pair, timeframe=timeframe, since=since_ms,
                     limit=candle_limit, params=params)
-            elif self._api_async.fetch_funding_rate_history:
+            else:
                 # Funding rate
                 data = await self._api_async.fetch_funding_rate_history(
                     pair, since=since_ms,
                     limit=candle_limit)
                 # Convert funding rate to candle pattern
                 data = [[x['timestamp'], x['fundingRate'], 0, 0, 0, 0] for x in data]
-                # Some exchanges sort OHLCV in ASC order and others in DESC.
-                # Ex: Bittrex returns the list of OHLCV in ASC order (oldest first, newest last)
-                # while GDAX returns the list of OHLCV in DESC order (newest first, oldest last)
-                # Only sort if necessary to save computing time
-                try:
-                    if data and data[0][0] > data[-1][0]:
-                        data = sorted(data, key=lambda x: x[0])
-                except IndexError:
-                    logger.exception("Error loading %s. Result was %s.", pair, data)
-                    return pair, timeframe, candle_type, []
-                logger.debug("Done fetching pair %s, interval %s ...", pair, timeframe)
-                return pair, timeframe, candle_type, data
-            else:
+            # Some exchanges sort OHLCV in ASC order and others in DESC.
+            # Ex: Bittrex returns the list of OHLCV in ASC order (oldest first, newest last)
+            # while GDAX returns the list of OHLCV in DESC order (newest first, oldest last)
+            # Only sort if necessary to save computing time
+            try:
+                if data and data[0][0] > data[-1][0]:
+                    data = sorted(data, key=lambda x: x[0])
+            except IndexError:
+                logger.exception("Error loading %s. Result was %s.", pair, data)
                 return pair, timeframe, candle_type, []
+            logger.debug("Done fetching pair %s, interval %s ...", pair, timeframe)
+            return pair, timeframe, candle_type, data
 
         except ccxt.NotSupported as e:
             raise OperationalException(
@@ -1944,7 +1946,7 @@ class Exchange:
             else:
                 logger.debug(
                     "Fetching trades for pair %s, since %s %s...",
-                    pair, since,
+                    pair,  since,
                     '(' + arrow.get(since // 1000).isoformat() + ') ' if since is not None else ''
                 )
                 trades = await self._api_async.fetch_trades(pair, since=since, limit=1000)
@@ -2100,7 +2102,7 @@ class Exchange:
             )
 
         if type(since) is datetime:
-            since = int(since.timestamp()) * 1000  # * 1000 for ms
+            since = int(since.timestamp()) * 1000   # * 1000 for ms
 
         try:
             funding_history = self._api.fetch_funding_history(
@@ -2283,10 +2285,10 @@ class Exchange:
 
     @retrier
     def _set_leverage(
-            self,
-            leverage: float,
-            pair: Optional[str] = None,
-            trading_mode: Optional[TradingMode] = None
+        self,
+        leverage: float,
+        pair: Optional[str] = None,
+        trading_mode: Optional[TradingMode] = None
     ):
         """
         Set's the leverage before making a trade, in order to not
@@ -2325,8 +2327,8 @@ class Exchange:
         if self.trading_mode in TradingMode.SPOT:
             return None
         elif (
-                self.margin_mode == MarginMode.ISOLATED and
-                self.trading_mode == TradingMode.FUTURES
+            self.margin_mode == MarginMode.ISOLATED and
+            self.trading_mode == TradingMode.FUTURES
         ):
             wallet_balance = (amount * open_rate) / leverage
             isolated_liq = self.get_or_calculate_liquidation_price(
@@ -2371,12 +2373,12 @@ class Exchange:
             raise OperationalException(e) from e
 
     def _fetch_and_calculate_funding_fees(
-            self,
-            pair: str,
-            amount: float,
-            is_short: bool,
-            open_date: datetime,
-            close_date: Optional[datetime] = None
+        self,
+        pair: str,
+        amount: float,
+        is_short: bool,
+        open_date: datetime,
+        close_date: Optional[datetime] = None
     ) -> float:
         """
         Fetches and calculates the sum of all funding fees that occurred for a pair
@@ -2440,28 +2442,28 @@ class Exchange:
                 # No funding rate candles - full fillup with fallback variable
                 mark_rates['open_fund'] = futures_funding_rate
                 return mark_rates.rename(
-                    columns={'open': 'open_mark',
-                             'close': 'close_mark',
-                             'high': 'high_mark',
-                             'low': 'low_mark',
-                             'volume': 'volume_mark'})
+                        columns={'open': 'open_mark',
+                                 'close': 'close_mark',
+                                 'high': 'high_mark',
+                                 'low': 'low_mark',
+                                 'volume': 'volume_mark'})
 
             else:
                 # Fill up missing funding_rate candles with fallback value
                 combined = mark_rates.merge(
                     funding_rates, on='date', how="outer", suffixes=["_mark", "_fund"]
-                )
+                    )
                 combined['open_fund'] = combined['open_fund'].fillna(futures_funding_rate)
                 return combined
 
     def calculate_funding_fees(
-            self,
-            df: DataFrame,
-            amount: float,
-            is_short: bool,
-            open_date: datetime,
-            close_date: Optional[datetime] = None,
-            time_in_ratio: Optional[float] = None
+        self,
+        df: DataFrame,
+        amount: float,
+        is_short: bool,
+        open_date: datetime,
+        close_date: Optional[datetime] = None,
+        time_in_ratio: Optional[float] = None
     ) -> float:
         """
         calculates the sum of all funding fees that occurred for a pair during a futures trade
@@ -2504,15 +2506,15 @@ class Exchange:
 
     @retrier
     def get_or_calculate_liquidation_price(
-            self,
-            pair: str,
-            # Dry-run
-            open_rate: float,  # Entry price of position
-            is_short: bool,
-            position: float,  # Absolute value of position size
-            wallet_balance: float,  # Or margin balance
-            mm_ex_1: float = 0.0,  # (Binance) Cross only
-            upnl_ex_1: float = 0.0,  # (Binance) Cross only
+        self,
+        pair: str,
+        # Dry-run
+        open_rate: float,   # Entry price of position
+        is_short: bool,
+        position: float,  # Absolute value of position size
+        wallet_balance: float,  # Or margin balance
+        mm_ex_1: float = 0.0,  # (Binance) Cross only
+        upnl_ex_1: float = 0.0,  # (Binance) Cross only
     ) -> Optional[float]:
         """
         Set's the margin mode on the exchange to cross or isolated for a specific pair
@@ -2563,14 +2565,14 @@ class Exchange:
             return None
 
     def dry_run_liquidation_price(
-            self,
-            pair: str,
-            open_rate: float,  # Entry price of position
-            is_short: bool,
-            position: float,  # Absolute value of position size
-            wallet_balance: float,  # Or margin balance
-            mm_ex_1: float = 0.0,  # (Binance) Cross only
-            upnl_ex_1: float = 0.0,  # (Binance) Cross only
+        self,
+        pair: str,
+        open_rate: float,   # Entry price of position
+        is_short: bool,
+        position: float,  # Absolute value of position size
+        wallet_balance: float,  # Or margin balance
+        mm_ex_1: float = 0.0,  # (Binance) Cross only
+        upnl_ex_1: float = 0.0,  # (Binance) Cross only
     ) -> Optional[float]:
         """
         PERPETUAL:
@@ -2616,9 +2618,9 @@ class Exchange:
                 "Freqtrade only supports isolated futures for leverage trading")
 
     def get_maintenance_ratio_and_amt(
-            self,
-            pair: str,
-            nominal_value: float = 0.0,
+        self,
+        pair: str,
+        nominal_value: float = 0.0,
     ) -> Tuple[float, Optional[float]]:
         """
         Important: Must be fetching data from cached values as this is used by backtesting!

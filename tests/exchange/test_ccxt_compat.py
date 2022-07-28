@@ -289,7 +289,7 @@ class TestCCXTExchange():
 
         funding_ohlcv = exchange.refresh_latest_ohlcv(
             [pair_tf],
-            since_ms=since,á
+            since_ms=since,
             drop_incomplete=False)
 
         assert isinstance(funding_ohlcv, dict)
